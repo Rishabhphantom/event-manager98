@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Announcement System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header__container">
+      <h1 class="header__title">Event Announcement System</h1>
+      <nav class="header__nav">
+        <a href="#events" class="header__link">Events</a>
+        <a href="#subscribe" class="header__link">Subscribe</a>
+        <a href="#create" class="header__link">Create Event</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main container">
+    <section id="events" class="card card--events">
+      <h2 class="card__title">Upcoming Events</h2>
+      <ul class="events-list">
+        <!-- Events will be dynamically inserted here -->
+      </ul>
+    </section>
+
+    <script>
+      const eventList = document.querySelector('.events-list');
+    
+      // Replace with your actual API Gateway URL for fetching events
+      const apiUrl = 'https://s61edt4u8b.execute-api.us-east-1.amazonaws.com/Prod/get-events';
+    
+      fetch(apiUrl, { method: 'GET' })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch events');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('API response:', data);
+          eventList.innerHTML = '';
+          // Parse the stringified array in data.body
+          let events = [];
+          if (Array.isArray(data)) {
+            events = data;
+          } else if (Array.isArray(data.events)) {
+            events = data.events;
+          } else if (typeof data.body === 'string') {
+            try {
+              events = JSON.parse(data.body);
+            } catch (e) {
+              console.error('Could not parse events:', e);
+              events = [];
+            }
+          }
+          if (Array.isArray(events)) {
+            events.forEach(event => {
+              const li = document.createElement('li');
+              li.className = 'events-list__item';
+              li.innerHTML = `
+                <h3 class="events-list__event-title">${event.name}</h3>
+                <span class="events-list__event-date">${event.date}</span>
+                <p class="events-list__event-desc">${event.description}</p>
+              `;
+              eventList.appendChild(li);
+            });
+          } else {
+            eventList.innerHTML = '<li>No events found.</li>';
+          }
+        })
+        .catch(error => {
+          console.error('Error loading events:', error);
+          eventList.innerHTML = '<li>Could not load events. Please try again later.</li>';
+        });
+    </script>
+
+    <section id="subscribe" class="card card--subscribe">
+      <h2 class="card__title">Subscribe for Event Notifications</h2>
+      <form class="form" action="https://s61edt4u8b.execute-api.us-east-1.amazonaws.com/Prod/subscribe" method="POST">
+        <label class="form__label" for="subscribe-email">Email</label>
+        <input class="form__input" type="email" id="subscribe-email" name="email" placeholder="Your email" required>
+        <button class="form__button" type="submit">Subscribe</button>
+      </form>
+    </section>
+
+    <section id="create" class="card card--create">
+      <h2 class="card__title">Create a New Event</h2>
+      <form class="form" action="https://s61edt4u8b.execute-api.us-east-1.amazonaws.com/Prod/create-event" method="POST">
+        <label class="form__label" for="event-title">Event Title</label>
+        <input class="form__input" type="text" id="event-title" name="title" placeholder="Event Title" required>
+        <label class="form__label" for="event-date">Date</label>
+        <input class="form__input" type="date" id="event-date" name="date" required>
+        <label class="form__label" for="event-desc">Description</label>
+        <textarea class="form__input" id="event-desc" name="description" placeholder="Event Description" required></textarea>
+        <button class="form__button" type="submit">Create Event</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p class="footer__text">&copy; 2025 Event Announcement System</p>
+    </div>
+  </footer>
+</body>
+</html>
 
